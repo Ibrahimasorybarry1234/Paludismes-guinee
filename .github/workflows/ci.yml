@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build-and-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cloner le dépôt
+        uses: actions/checkout@v4
+
+      - name: Installer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Installer les dépendances
+        run: pip install -r requirements.txt
+
+      - name: Vérifier la syntaxe des modules
+        run: |
+          python -m py_compile src/preprocessing.py src/train.py src/predict.py app/app.py
+
+      - name: Entraîner et sérialiser le modèle
+        run: python src/train.py --data data/raw/paludisme.csv --outdir models
+
+      - name: Vérifier que l'application Streamlit s'importe correctement
+        run: python -c "import ast; ast.parse(open('app/app.py').read())"
+
+      - name: Uploader le modèle entraîné comme artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: modele-entraine
+          path: models/
