@@ -1,0 +1,24 @@
+{
+  "best_model": "Regression_logistique",
+  "comparaison": {
+    "Regression_logistique": {
+      "accuracy": 0.926,
+      "precision_weighted": 0.9275338251850754,
+      "rappel_weighted": 0.926,
+      "f1_weighted": 0.9265956934574572,
+      "roc_auc_ovr_weighted": 0.9913278389828609
+    },
+    "Random_Forest": {
+      "accuracy": 0.915,
+      "precision_weighted": 0.9204105589824576,
+      "rappel_weighted": 0.915,
+      "f1_weighted": 0.9166506300485288,
+      "roc_auc_ovr_weighted": 0.989717722646696
+    }
+  },
+  "class_names": [
+    "eleve",
+    "faible",
+    "moyen"
+  ]
+}
