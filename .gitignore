@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.ipynb_checkpoints/
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Données volumineuses (garder uniquement data/raw/paludisme.csv qui fait <1 Mo)
+*.zip
+
+# Système
+.DS_Store
+Thumbs.db
+
+# Éditeurs
+.vscode/
+.idea/
+
+# Modèles volumineux générés localement (les modèles < 25 Mo sont versionnés dans models/)
+*.log
