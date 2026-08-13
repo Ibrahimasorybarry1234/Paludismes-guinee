@@ -59,6 +59,8 @@ Paludismes-guinee/
 │   └── app.py                  # application Streamlit
 ├── rapport/
 │   └── rapport.pdf             # rapport complet (13 pages)
+├── presentation/
+│   └── presentation.pptx       # support de présentation du projet
 └── .github/workflows/ci.yml    # pipeline CI/CD GitHub Actions
 ```
 
