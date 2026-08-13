@@ -32,6 +32,9 @@ jobs:
       - name: Vérifier que l'application Streamlit s'importe correctement
         run: python -c "import ast; ast.parse(open('app/app.py').read())"
 
+      - name: Lancer les tests unitaires
+        run: pytest tests/ -q
+
       - name: Uploader le modèle entraîné comme artefact
         uses: actions/upload-artifact@v4
         with:
