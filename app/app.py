@@ -78,16 +78,22 @@ def page_prediction(predictor: RiskPredictor | None) -> None:
         )
         return
 
-    with st.form("prediction_form"):
-        col1, col2, col3 = st.columns(3)
+    # La région et la préfecture doivent rester HORS du formulaire : à
+    # l'intérieur d'un st.form, les widgets ne se mettent pas à jour tant
+    # que le formulaire n'est pas soumis, donc la liste des préfectures ne
+    # suivrait pas le changement de région tant qu'on n'a pas cliqué sur le
+    # bouton de prédiction.
+    col_loc1, col_loc2, col_loc3 = st.columns(3)
+    with col_loc1:
+        st.subheader("Localisation")
+        region = st.selectbox("Région administrative", list(REGIONS_PREFECTURES.keys()), key="region_select")
+        prefecture = st.selectbox("Préfecture", REGIONS_PREFECTURES[region], key=f"prefecture_select_{region}")
+        zone_climatique = st.selectbox("Zone climatique", ZONES_CLIMATIQUES, key="zone_select")
+        mois = st.slider("Mois", 1, 12, 8, key="mois_select")
+        semaine = st.slider("Semaine de l'année", 1, 53, 32, key="semaine_select")
 
-        with col1:
-            st.subheader("Localisation")
-            region = st.selectbox("Région administrative", list(REGIONS_PREFECTURES.keys()))
-            prefecture = st.selectbox("Préfecture", REGIONS_PREFECTURES[region])
-            zone_climatique = st.selectbox("Zone climatique", ZONES_CLIMATIQUES)
-            mois = st.slider("Mois", 1, 12, 8)
-            semaine = st.slider("Semaine de l'année", 1, 53, 32)
+    with st.form("prediction_form"):
+        col2, col3 = st.columns(2)
 
         with col2:
             st.subheader("Météo")
