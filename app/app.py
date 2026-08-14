@@ -78,13 +78,14 @@ def page_prediction(predictor: RiskPredictor | None) -> None:
         )
         return
 
-    # La région et la préfecture doivent rester HORS du formulaire : à
-    # l'intérieur d'un st.form, les widgets ne se mettent pas à jour tant
-    # que le formulaire n'est pas soumis, donc la liste des préfectures ne
-    # suivrait pas le changement de région tant qu'on n'a pas cliqué sur le
-    # bouton de prédiction.
-    col_loc1, col_loc2, col_loc3 = st.columns(3)
-    with col_loc1:
+    # Pas de st.form ici : à l'intérieur d'un formulaire, les widgets ne se
+    # mettent à jour qu'à la soumission, donc la préfecture ne suivrait pas
+    # le changement de région tant qu'on n'a pas cliqué sur le bouton. On
+    # utilise à la place un bouton classique, avec les 3 blocs alignés sur
+    # la même ligne.
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
         st.subheader("Localisation")
         region = st.selectbox("Région administrative", list(REGIONS_PREFECTURES.keys()), key="region_select")
         prefecture = st.selectbox("Préfecture", REGIONS_PREFECTURES[region], key=f"prefecture_select_{region}")
@@ -92,27 +93,24 @@ def page_prediction(predictor: RiskPredictor | None) -> None:
         mois = st.slider("Mois", 1, 12, 8, key="mois_select")
         semaine = st.slider("Semaine de l'année", 1, 53, 32, key="semaine_select")
 
-    with st.form("prediction_form"):
-        col2, col3 = st.columns(2)
+    with col2:
+        st.subheader("Météo")
+        temperature_moyenne_c = st.slider("Température moyenne (°C)", 20.0, 34.0, 27.0, key="temp_moy")
+        temperature_min_c = st.slider("Température min (°C)", 15.0, 30.0, 22.5, key="temp_min")
+        temperature_max_c = st.slider("Température max (°C)", 24.0, 39.0, 31.5, key="temp_max")
+        precipitation_mm = st.slider("Précipitation du jour (mm)", 0.0, 250.0, 13.0, key="precip_jour")
+        precipitation_7j_mm = st.slider("Précipitation cumulée 7j (mm)", 0.0, 600.0, 90.0, key="precip_7j")
+        precipitation_30j_mm = st.slider("Précipitation cumulée 30j (mm)", 0.0, 1600.0, 375.0, key="precip_30j")
 
-        with col2:
-            st.subheader("Météo")
-            temperature_moyenne_c = st.slider("Température moyenne (°C)", 20.0, 34.0, 27.0)
-            temperature_min_c = st.slider("Température min (°C)", 15.0, 30.0, 22.5)
-            temperature_max_c = st.slider("Température max (°C)", 24.0, 39.0, 31.5)
-            precipitation_mm = st.slider("Précipitation du jour (mm)", 0.0, 250.0, 13.0)
-            precipitation_7j_mm = st.slider("Précipitation cumulée 7j (mm)", 0.0, 600.0, 90.0)
-            precipitation_30j_mm = st.slider("Précipitation cumulée 30j (mm)", 0.0, 1600.0, 375.0)
+    with col3:
+        st.subheader("Environnement")
+        humidite_relative_pct = st.slider("Humidité relative (%)", 40.0, 100.0, 70.0, key="humid_rel")
+        vitesse_vent_kmh = st.slider("Vitesse du vent (km/h)", 0.0, 20.0, 9.0, key="vent")
+        jours_pluie_7j = st.slider("Jours de pluie (7 derniers jours)", 0, 7, 4, key="jours_pluie")
+        humidite_sol_pct = st.slider("Humidité du sol (%)", 20.0, 100.0, 62.0, key="humid_sol")
+        indice_eau_stagnante = st.slider("Indice d'eau stagnante (0-1)", 0.0, 1.0, 0.6, key="eau_stagnante")
 
-        with col3:
-            st.subheader("Environnement")
-            humidite_relative_pct = st.slider("Humidité relative (%)", 40.0, 100.0, 70.0)
-            vitesse_vent_kmh = st.slider("Vitesse du vent (km/h)", 0.0, 20.0, 9.0)
-            jours_pluie_7j = st.slider("Jours de pluie (7 derniers jours)", 0, 7, 4)
-            humidite_sol_pct = st.slider("Humidité du sol (%)", 20.0, 100.0, 62.0)
-            indice_eau_stagnante = st.slider("Indice d'eau stagnante (0-1)", 0.0, 1.0, 0.6)
-
-        submitted = st.form_submit_button("Prédire le niveau de risque", type="primary", use_container_width=True)
+    submitted = st.button("Prédire le niveau de risque", type="primary", use_container_width=True)
 
     if submitted:
         # Coordonnées approximatives = moyenne nationale (non demandées à l'utilisateur)
