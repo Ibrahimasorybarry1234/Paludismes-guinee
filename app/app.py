@@ -15,6 +15,8 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
+from theme import apply_theme, hero_banner, result_card, style_fig, RISK_COLORS
+
 ROOT_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT_DIR / "src"))
 from predict import RiskPredictor  # noqa: E402
@@ -34,13 +36,15 @@ REGIONS_PREFECTURES = {
 }
 ZONES_CLIMATIQUES = ["côtier", "forestier", "montagneux", "soudano-guinéen"]
 
-RISK_COLORS = {"faible": "#2e7d32", "moyen": "#f9a825", "eleve": "#c62828"}
+# RISK_COLORS vient maintenant de theme.py (vert forêt / or / rouge risque),
+# pour rester cohérent avec .streamlit/config.toml et le reste de l'identité.
 
 st.set_page_config(
     page_title="Paludisme Guinée — Prédiction du risque",
     page_icon="🦟",
     layout="wide",
 )
+apply_theme()
 
 
 @st.cache_resource
@@ -65,7 +69,7 @@ def load_metrics() -> dict:
 
 
 def page_prediction(predictor: RiskPredictor | None) -> None:
-    st.header("🔮 Prédire le niveau de risque")
+    st.header("Prédire le niveau de risque")
     st.caption(
         "Renseignez les conditions météorologiques et environnementales d'une "
         "zone pour estimer le niveau de risque de paludisme (faible / moyen / élevé)."
@@ -141,12 +145,7 @@ def page_prediction(predictor: RiskPredictor | None) -> None:
         proba = result["probabilites"]
 
         st.divider()
-        color = RISK_COLORS.get(niveau, "#666")
-        st.markdown(
-            f"### Niveau de risque prédit : "
-            f"<span style='color:{color}'>**{niveau.upper()}**</span>",
-            unsafe_allow_html=True,
-        )
+        st.markdown(result_card(niveau), unsafe_allow_html=True)
 
         proba_df = pd.DataFrame({"niveau_risque": list(proba.keys()), "probabilite": list(proba.values())})
         order = ["faible", "moyen", "eleve"]
@@ -159,7 +158,7 @@ def page_prediction(predictor: RiskPredictor | None) -> None:
             labels={"niveau_risque": "Niveau de risque", "probabilite": "Probabilité"},
         )
         fig.update_layout(showlegend=False, yaxis_tickformat=".0%")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(style_fig(fig), use_container_width=True)
 
         if niveau == "eleve":
             st.warning(
@@ -170,7 +169,7 @@ def page_prediction(predictor: RiskPredictor | None) -> None:
 
 
 def page_exploration(df: pd.DataFrame) -> None:
-    st.header("📊 Exploration des données")
+    st.header("Exploration des données")
     st.caption(f"{len(df):,} observations couvrant les {df['region_administrative'].nunique()} régions administratives de Guinée.")
 
     col1, col2 = st.columns([1, 1])
@@ -182,7 +181,7 @@ def page_exploration(df: pd.DataFrame) -> None:
             color_discrete_map=RISK_COLORS, title="Répartition du niveau de risque",
         )
         fig.update_layout(showlegend=False)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(style_fig(fig), use_container_width=True)
 
     with col2:
         region_risk = pd.crosstab(df["region_administrative"], df["niveau_risque"], normalize="index")
@@ -194,7 +193,7 @@ def page_exploration(df: pd.DataFrame) -> None:
             barmode="stack",
         )
         fig2.update_layout(yaxis_tickformat=".0%")
-        st.plotly_chart(fig2, use_container_width=True)
+        st.plotly_chart(style_fig(fig2), use_container_width=True)
 
     st.subheader("Relation météo / risque")
     weather_col = st.selectbox(
@@ -206,14 +205,14 @@ def page_exploration(df: pd.DataFrame) -> None:
         df, x=weather_col, color="niveau_risque", barmode="overlay",
         color_discrete_map=RISK_COLORS, histnorm="probability density", opacity=0.6,
     )
-    st.plotly_chart(fig3, use_container_width=True)
+    st.plotly_chart(style_fig(fig3), use_container_width=True)
 
     with st.expander("Voir un échantillon des données brutes"):
         st.dataframe(df.sample(min(200, len(df)), random_state=42), use_container_width=True)
 
 
 def page_modele(metrics: dict) -> None:
-    st.header("🧠 Performance du modèle")
+    st.header("Performance du modèle")
     if not metrics:
         st.info("Aucune métrique disponible. Exécutez `python src/train.py` pour entraîner les modèles.")
         return
@@ -230,7 +229,7 @@ def page_modele(metrics: dict) -> None:
         barmode="group", title="Comparaison des modèles",
     )
     fig.update_layout(yaxis_range=[0, 1], legend_title="Métrique")
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(style_fig(fig), use_container_width=True)
 
     st.markdown(
         """
@@ -248,10 +247,13 @@ def page_modele(metrics: dict) -> None:
 
 
 def main() -> None:
-    st.title("🦟 Prédiction du risque de paludisme en Guinée")
-    st.caption(
-        "Projet data science — données synthétiques à but pédagogique. "
-        "Ne remplace pas les données de surveillance épidémiologique officielles."
+    hero_banner(
+        eyebrow="Ministère de la Santé — Surveillance épidémiologique",
+        title="Prédiction du risque de paludisme en Guinée",
+        subtitle=(
+            "Projet data science — données synthétiques à but pédagogique. "
+            "Ne remplace pas les données de surveillance épidémiologique officielles."
+        ),
     )
 
     predictor = load_predictor()
